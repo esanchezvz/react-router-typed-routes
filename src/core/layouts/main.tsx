@@ -1,5 +1,5 @@
 import { Outlet } from "react-router";
-import { AppLink } from "../components/app-link";
+import { NavLink } from "~/core/router/components";
 
 const MainLayout = () => {
   return (
@@ -8,13 +8,13 @@ const MainLayout = () => {
         <nav>
           <ul className="flex items-center gap-4">
             <li>
-              <AppLink to="/">Home</AppLink>
+              <NavLink to="/">Home</NavLink>
             </li>
             <li>
-              <AppLink to="/posts">Posts</AppLink>
+              <NavLink to="/posts">Posts</NavLink>
             </li>
             <li>
-              <AppLink to="/users">Users</AppLink>
+              <NavLink to="/users">Users</NavLink>
             </li>
           </ul>
         </nav>

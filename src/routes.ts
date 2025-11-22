@@ -13,8 +13,6 @@ export default [
       index("posts/pages/index.tsx"),
       route(":slug", "posts/pages/post-detail.tsx"),
     ]),
-  ]),
-  layout("users/components/users-layout.tsx", [
     ...prefix("users", [
       index("users/pages/index.tsx"),
       ...prefix(":id", [route("edit", "users/pages/edit-user.tsx")]),
