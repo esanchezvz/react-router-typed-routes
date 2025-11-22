@@ -1,5 +1,5 @@
-const HomeIndexRoute = () => {
+const HomeIndexPage = () => {
   return <h1>Home Page</h1>;
 };
 
-export default HomeIndexRoute;
+export default HomeIndexPage;

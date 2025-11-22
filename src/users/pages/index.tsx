@@ -2,25 +2,25 @@ import { NavLink } from "react-router";
 import type { Route } from "./+types/index";
 
 export async function clientLoader(_args: Route.LoaderArgs) {
-  const { posts } = await import("../data");
+  const { users } = await import("../data");
 
-  return { posts };
+  return { users };
 }
 
-const PostsIndexPage = ({ loaderData: { posts } }: Route.ComponentProps) => {
+const UsersIndexPage = ({ loaderData: { users } }: Route.ComponentProps) => {
   return (
     <div className="flex flex-col gap-6">
       <h1>Posts</h1>
 
       <div className="flex flex-col gap-2">
-        {posts.map(({ slug, title }) => {
+        {users.map(({ id, firstName, lastName }) => {
           return (
             <NavLink
-              key={slug}
+              key={id}
               className="text-yellow-500 underline underline-offset-4"
-              to={`/posts/${slug}`}
+              to={`/users/${id}/edit`}
             >
-              {title}
+              {firstName} {lastName}
             </NavLink>
           );
         })}
@@ -29,4 +29,4 @@ const PostsIndexPage = ({ loaderData: { posts } }: Route.ComponentProps) => {
   );
 };
 
-export default PostsIndexPage;
+export default UsersIndexPage;

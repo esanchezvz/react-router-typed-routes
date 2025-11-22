@@ -10,9 +10,9 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   return { post };
 }
 
-const PostDetailRoute = ({ loaderData: { post } }: Route.ComponentProps) => {
+const PostDetailPage = ({ loaderData: { post } }: Route.ComponentProps) => {
   if (!post) return null;
   return <h1>{post.title}</h1>;
 };
 
-export default PostDetailRoute;
+export default PostDetailPage;

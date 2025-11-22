@@ -1,12 +1,12 @@
 import { Outlet } from "react-router";
-import { AppLink } from "../components/app-link";
+import { AppLink } from "~/core/components/app-link";
 
-const MainLayout = () => {
+const USersLayout = () => {
   return (
-    <div className="flex flex-col h-screen w-full overflow-hidden">
-      <header className="px-2 py-4 bg-black border-b border-white">
+    <div className="flex h-screen w-full overflow-hidden">
+      <header className="px-2 py-4 bg-black border-r border-white">
         <nav>
-          <ul className="flex items-center gap-4">
+          <ul className="flex flex-col items-center justify-center gap-4 w-30">
             <li>
               <AppLink to="/">Home</AppLink>
             </li>
@@ -27,4 +27,4 @@ const MainLayout = () => {
   );
 };
 
-export default MainLayout;
+export default USersLayout;
