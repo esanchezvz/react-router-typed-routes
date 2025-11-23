@@ -10,7 +10,7 @@ type ReplaceParams<T extends string> =
     ? `${Start}/${string}`
     : T;
 
-type IsParam<S extends string> = S extends `:${string}` ? true : false;
+type IsParam<S extends string> = Utils.MatchPattern<S, `:${string}`>;
 
 // Match route segments recursively
 export type MatchRouteSegments<

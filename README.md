@@ -66,7 +66,7 @@ type ReplaceParams<T extends string> =
 **Goal**: Check if a string segment is a dynamic parameter (starts with `:`).
 
 ```typescript
-type IsParam<S extends string> = S extends `:${string}` ? true : false;
+type IsParam<S extends string> = Utils.MatchPattern<S, `:${string}`>;
 ```
 
 ### `MatchRouteSegments<Pattern, Candidate>`
