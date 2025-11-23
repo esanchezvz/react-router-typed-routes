@@ -16,7 +16,7 @@ type IsParam<S extends string> = S extends `:${string}` ? true : false;
 export type MatchRouteSegments<
   Pattern extends string[],
   Candidate extends string[],
-  Depth extends any[] = Utils.DefaultRecursionLimit // Limit default recursion to 10 levels
+  Depth extends any[] = Utils.DefaultRecursionLimit
 > = Pattern extends []
   ? Candidate extends []
     ? true

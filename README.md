@@ -77,36 +77,38 @@ type IsParam<S extends string> = S extends `:${string}` ? true : false;
 type MatchRouteSegments<
   Pattern extends string[],
   Candidate extends string[],
-  Depth extends any[] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] // 10 levels max
-> = Depth["length"] extends 0
-  ? false
+  Depth extends any[] = Utils.DefaultRecursionLimit
+> = Pattern extends []
+  ? Candidate extends []
+    ? true
+    : false
+  : Depth["length"] extends 0
+  ? false // Recursion limit reached
   : Pattern["length"] extends Candidate["length"]
   ? Pattern extends [infer PHead, ...infer PTail]
     ? Candidate extends [infer CHead, ...infer CTail]
       ? PHead extends string
         ? CHead extends string
           ? IsParam<PHead> extends true
-            ? // 1. Param Match
-              CHead extends ""
+            ? CHead extends ""
               ? false
               : MatchRouteSegments<
-                  PTail,
-                  CTail,
+                  PTail extends string[] ? PTail : [],
+                  CTail extends string[] ? CTail : [],
                   Depth extends [any, ...infer Rest] ? Rest : []
                 >
-            : // 2. Static Match
-            PHead extends CHead
+            : PHead extends CHead
             ? MatchRouteSegments<
-                PTail,
-                CTail,
+                PTail extends string[] ? PTail : [],
+                CTail extends string[] ? CTail : [],
                 Depth extends [any, ...infer Rest] ? Rest : []
               >
             : false
           : false
         : false
-      : true // Both empty (success)
-    : true
-  : false; // Length mismatch
+      : never
+    : never
+  : false;
 ```
 
 **Logic**:
