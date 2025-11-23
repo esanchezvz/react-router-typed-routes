@@ -60,6 +60,8 @@ type ValidateRoute<T extends string> = {
 }[RouteDefinition];
 
 declare global {
+  type RouteDefinition = keyof Pages;
+
   /**
    * Loose type for valid route autocomplete
    */
@@ -67,6 +69,4 @@ declare global {
 
   /** Strict type validation for strings to match valid routes */
   type AppRoute<T extends string> = T extends ValidateRoute<T> ? T : never;
-
-  type RouteDefinition = keyof Pages;
 }
