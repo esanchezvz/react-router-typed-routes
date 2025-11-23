@@ -17,7 +17,11 @@ export type MatchRouteSegments<
   Pattern extends string[],
   Candidate extends string[],
   Depth extends any[] = Utils.DefaultRecursionLimit // Limit default recursion to 10 levels
-> = Depth["length"] extends 0
+> = Pattern extends []
+  ? Candidate extends []
+    ? true
+    : false
+  : Depth["length"] extends 0
   ? false // Recursion limit reached
   : Pattern["length"] extends Candidate["length"]
   ? Pattern extends [infer PHead, ...infer PTail]
@@ -41,8 +45,8 @@ export type MatchRouteSegments<
             : false
           : false
         : false
-      : true // Both empty
-    : true
+      : never
+    : never
   : false;
 
 // Validate a candidate string against all Pages
