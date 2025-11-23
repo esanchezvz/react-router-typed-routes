@@ -1,10 +1,13 @@
-import { useNavigate as useRouterNavigate, type NavigateOptions } from "react-router";
+import {
+  useNavigate as useRouterNavigate,
+  type NavigateOptions,
+} from "react-router";
 
 export const useNavigate = () => {
   const navigate = useRouterNavigate();
 
-  return <T extends ApplicationRouter.RoutePath>(
-    to: ApplicationRouter.Route<T> | number,
+  return <T extends AppRoutePath>(
+    to: AppRoute<T> | number,
     options?: NavigateOptions
   ) => {
     if (typeof to === "number") {
@@ -12,4 +15,4 @@ export const useNavigate = () => {
     }
     return navigate(to, options);
   };
-}
+};

@@ -14,10 +14,10 @@ type Pages = import("react-router").Register extends { pages: infer P }
 
 We extract the `Pages` type from React Router's global `Register` interface. This type contains all your declared routes (e.g., `"/posts/:slug"`).
 
-### `RoutePath` (The "Loose" Type)
+### `AppRoutePath` (The "Loose" Type)
 
 ```typescript
-type RoutePath = ReplaceParams<keyof Pages & string>;
+type AppRoutePath = ReplaceParams<keyof Pages & string>;
 ```
 
 This type transforms route keys into template literal types.
@@ -26,12 +26,12 @@ This type transforms route keys into template literal types.
 - **Output**: `"/posts/${string}"`
 
 **Purpose**: It provides excellent **autocomplete** in your IDE.
-**Limitation**: TypeScript's template literal types are "greedy". `"/posts/${string}"` matches `"/posts/my-slug"`, but it _also_ matches `"/posts/my-slug/extra/segments"`. This is why `RoutePath` alone isn't strictly type-safe.
+**Limitation**: TypeScript's template literal types are "greedy". `"/posts/${string}"` matches `"/posts/my-slug"`, but it _also_ matches `"/posts/my-slug/extra/segments"`. This is why `AppRoutePath` alone isn't strictly type-safe.
 
-### `Route<T>` (The "Strict" Validator)
+### `AppRoute<T>` (The "Strict" Validator)
 
 ```typescript
-type Route<T extends string> = T extends ValidateRoute<T> ? T : never;
+type AppRoute<T extends string> = T extends ValidateRoute<T> ? T : never;
 ```
 
 This is a conditional type that strictly validates a specific string literal `T`. If valid, it returns `T`. If invalid, it returns `never`.
@@ -77,7 +77,7 @@ type IsParam<S extends string> = S extends `:${string}` ? true : false;
 type MatchRouteSegments<
   Pattern extends string[],
   Candidate extends string[],
-  Depth extends any[] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] // 10 levels max
+  Depth extends any[] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] // 10 levels max
 > = Depth["length"] extends 0
   ? false
   : Pattern["length"] extends Candidate["length"]
@@ -89,10 +89,18 @@ type MatchRouteSegments<
             ? // 1. Param Match
               CHead extends ""
               ? false
-              : MatchRouteSegments<PTail, CTail, Depth extends [any, ...infer Rest] ? Rest : []>
+              : MatchRouteSegments<
+                  PTail,
+                  CTail,
+                  Depth extends [any, ...infer Rest] ? Rest : []
+                >
             : // 2. Static Match
             PHead extends CHead
-            ? MatchRouteSegments<PTail, CTail, Depth extends [any, ...infer Rest] ? Rest : []>
+            ? MatchRouteSegments<
+                PTail,
+                CTail,
+                Depth extends [any, ...infer Rest] ? Rest : []
+              >
             : false
           : false
         : false
@@ -116,13 +124,13 @@ type MatchRouteSegments<
 
 ```typescript
 type ValidateRoute<T extends string> = {
-  [P in keyof Pages & string]: MatchRouteSegments<
-    Split<P, "/">,
-    Split<T, "/">
+  [P in RouteDefinition]: MatchRouteSegments<
+    Utils.Split<P, "/">,
+    Utils.Split<T, "/">
   > extends true
     ? T
     : never;
-}[keyof Pages & string];
+}[RouteDefinition];
 ```
 
 **Logic**:
@@ -141,15 +149,15 @@ You might wonder why we can't just use the type directly:
 
 ```typescript
 // ❌ Why this is annoying
-const route: Route<"/posts/123"> = "/posts/123";
+const route: AppRoute<"/posts/123"> = "/posts/123";
 ```
 
 ### The Inference Problem
 
-`Route<T>` is a **generic type**. It needs to know what `T` is to validate it.
+`AppRoute<T>` is a **generic type**. It needs to know what `T` is to validate it.
 
-- If you write `const r: Route<string>`, `T` is `string`, which is too broad to validate.
-- If you write `const r: Route<"/posts/123">`, you are manually typing the string twice (once in the type, once in the value).
+- If you write `const r: AppRoute<string>`, `T` is `string`, which is too broad to validate.
+- If you write `const r: AppRoute<"/posts/123">`, you are manually typing the string twice (once in the type, once in the value).
 
 ### The Solution: Inference via Functions
 
@@ -158,11 +166,11 @@ Helper functions like `route` and wrapper components like `NavLink` allow TypeSc
 ```typescript
 // ✅ route infers T = "/posts/123"
 route("/posts/123");
-// Route<"/posts/123"> resolves to "/posts/123". All good.
+// AppRoute<"/posts/123"> resolves to "/posts/123". All good.
 
 // ❌ route infers T = "/posts/123/extra"
 route("/posts/123/extra");
-// Route<"/posts/123/extra"> resolves to NEVER.
+// AppRoute<"/posts/123/extra"> resolves to NEVER.
 // Error: Argument of type string is not assignable to parameter of type never.
 ```
 
@@ -173,13 +181,14 @@ By using these wrappers and helper functions, we get the best of both worlds:
 
 ## Summary
 
-| Component     | Purpose                                                            |
-| ------------- | ------------------------------------------------------------------ |
-| `RoutePath`   | Global type for autocomplete. Loose matching.                      |
-| `Route<T>`    | Logic to strictly validate a specific string literal.              |
-| `route`.      | Helper to infer `T` and enforce `Route`.                           |
-| `NavLink`.    | Wrapper for `<ReactRouter.NavLink>` that enforces `Route` on `to`. |
-| `useNavigate` | Wrapper for `ReactRouter.useNavigate` that enforces `Route`.       |
+| Component      | Purpose                                                               |
+| -------------- | --------------------------------------------------------------------- |
+| `AppRoutePath` | Global type for autocomplete. Loose matching.                         |
+| `AppRoute<T>`  | Logic to strictly validate a specific string literal.                 |
+| `route`.       | Helper to infer `T` and enforce `AppRoute`.                           |
+| `NavLink`.     | Wrapper for `<ReactRouter.NavLink>` that enforces `AppRoute` on `to`. |
+| `useNavigate`  | Wrapper for `ReactRouter.useNavigate` that enforces `AppRoute`.       |
+
 # React Router v7 Type Safety Explanation
 
 This document explains the type safety implementation for React Router v7, specifically how `src/types/route-paths.d.ts` works and why helper functions are necessary for strict validation.
@@ -196,10 +205,10 @@ type Pages = import("react-router").Register extends { pages: infer P }
 
 We extract the `Pages` type from React Router's global `Register` interface. This type contains all your declared routes (e.g., `"/posts/:slug"`).
 
-### `RoutePath` (The "Loose" Type)
+### `AppRoutePath` (The "Loose" Type)
 
 ```typescript
-type RoutePath = ReplaceParams<keyof Pages & string>;
+type AppRoutePath = ReplaceParams<keyof Pages & string>;
 ```
 
 This type transforms route keys into template literal types.
@@ -208,12 +217,12 @@ This type transforms route keys into template literal types.
 - **Output**: `"/posts/${string}"`
 
 **Purpose**: It provides excellent **autocomplete** in your IDE.
-**Limitation**: TypeScript's template literal types are "greedy". `"/posts/${string}"` matches `"/posts/my-slug"`, but it _also_ matches `"/posts/my-slug/extra/segments"`. This is why `RoutePath` alone isn't strictly type-safe.
+**Limitation**: TypeScript's template literal types are "greedy". `"/posts/${string}"` matches `"/posts/my-slug"`, but it _also_ matches `"/posts/my-slug/extra/segments"`. This is why `AppRoutePath` alone isn't strictly type-safe.
 
-### `Route<T>` (The "Strict" Validator)
+### `AppRoute<T>` (The "Strict" Validator)
 
 ```typescript
-type Route<T extends string> = T extends ValidateRoute<T> ? T : never;
+type AppRoute<T extends string> = T extends ValidateRoute<T> ? T : never;
 ```
 
 This is a conditional type that strictly validates a specific string literal `T`. If valid, it returns `T`. If invalid, it returns `never`.
@@ -351,10 +360,10 @@ By using these wrappers and helper functions, we get the best of both worlds:
 
 ## Summary
 
-| Component     | Purpose                                                            |
-| ------------- | ------------------------------------------------------------------ |
-| `RoutePath`   | Global type for autocomplete. Loose matching.                      |
-| `Route<T>`    | Logic to strictly validate a specific string literal.              |
-| `route`.      | Helper to infer `T` and enforce `Route`.                           |
-| `NavLink`.    | Wrapper for `<ReactRouter.NavLink>` that enforces `Route` on `to`. |
-| `useNavigate` | Wrapper for `ReactRouter.useNavigate` that enforces `Route`.       |
+| Component      | Purpose                                                            |
+| -------------- | ------------------------------------------------------------------ |
+| `AppRoutePath` | Global type for autocomplete. Loose matching.                      |
+| `Route<T>`     | Logic to strictly validate a specific string literal.              |
+| `route`.       | Helper to infer `T` and enforce `Route`.                           |
+| `NavLink`.     | Wrapper for `<ReactRouter.NavLink>` that enforces `Route` on `to`. |
+| `useNavigate`  | Wrapper for `ReactRouter.useNavigate` that enforces `Route`.       |

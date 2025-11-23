@@ -14,18 +14,18 @@ const linkClassName = ({ isActive }: NavLinkRenderProps) =>
       : "hover:text-yellow-500 transition-colors"
   }`;
 
-export interface NavLinkProps<T extends ApplicationRouter.RoutePath> extends RRNavLinkProps {
-  to: ApplicationRouter.Route<T> | Partial<Path>;
+export interface NavLinkProps<T extends AppRoutePath> extends RRNavLinkProps {
+  to: AppRoute<T> | Partial<Path>;
 }
 
-export const NavLink = <T extends ApplicationRouter.RoutePath>(props: NavLinkProps<T>) => (
+export const NavLink = <T extends AppRoutePath>(props: NavLinkProps<T>) => (
   <RRNavLink className={linkClassName} {...props} />
 );
 
-export interface LinkProps<T extends ApplicationRouter.RoutePath> extends RRLinkProps {
-  to: ApplicationRouter.Route<T> | Partial<Path>;
+export interface LinkProps<T extends AppRoutePath> extends RRLinkProps {
+  to: AppRoute<T> | Partial<Path>;
 }
 
-export const Link = <T extends ApplicationRouter.RoutePath>(props: LinkProps<T>) => (
+export const Link = <T extends AppRoutePath>(props: LinkProps<T>) => (
   <RRLink {...props} />
 );
