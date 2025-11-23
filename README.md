@@ -76,8 +76,11 @@ type IsParam<S extends string> = S extends `:${string}` ? true : false;
 ```typescript
 type MatchRouteSegments<
   Pattern extends string[],
-  Candidate extends string[]
-> = Pattern["length"] extends Candidate["length"]
+  Candidate extends string[],
+  Depth extends any[] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] // 10 levels max
+> = Depth["length"] extends 0
+  ? false
+  : Pattern["length"] extends Candidate["length"]
   ? Pattern extends [infer PHead, ...infer PTail]
     ? Candidate extends [infer CHead, ...infer CTail]
       ? PHead extends string
@@ -86,10 +89,10 @@ type MatchRouteSegments<
             ? // 1. Param Match
               CHead extends ""
               ? false
-              : MatchRouteSegments<PTail, CTail>
+              : MatchRouteSegments<PTail, CTail, Depth extends [any, ...infer Rest] ? Rest : []>
             : // 2. Static Match
             PHead extends CHead
-            ? MatchRouteSegments<PTail, CTail>
+            ? MatchRouteSegments<PTail, CTail, Depth extends [any, ...infer Rest] ? Rest : []>
             : false
           : false
         : false
@@ -100,11 +103,12 @@ type MatchRouteSegments<
 
 **Logic**:
 
-1.  **Length Check**: First, ensures both arrays have the same length. This immediately rejects paths with extra segments (e.g., `/posts/1/extra` vs `/posts/:id`).
-2.  **Recursive Head Matching**:
-    - **If Pattern Head is a Param** (`:id`): Checks if Candidate Head is a non-empty string. Crucially, because we split by `/`, the Candidate Head **cannot** contain a slash. This prevents greedy matching.
-    - **If Pattern Head is Static** (`posts`): Checks if Candidate Head matches exactly (`PHead extends CHead`).
-3.  **Recursion**: If the heads match, it recurses on the tails (`PTail`, `CTail`).
+1.  **Recursion Limit**: Checks if `Depth` has reached 0. If so, returns `false` to prevent infinite recursion or "excessively deep" errors.
+2.  **Length Check**: Ensures both arrays have the same length.
+3.  **Recursive Head Matching**:
+    - **If Pattern Head is a Param** (`:id`): Checks if Candidate Head is a non-empty string.
+    - **If Pattern Head is Static** (`posts`): Checks if Candidate Head matches exactly.
+4.  **Recursion**: Recurses on the tails, decrementing the `Depth` counter.
 
 ### `ValidateRoute<T>`
 

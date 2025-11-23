@@ -1,7 +1,7 @@
-import { useNavigate, type NavigateOptions } from "react-router";
+import { useNavigate as useRouterNavigate, type NavigateOptions } from "react-router";
 
-export function useSafeNavigate() {
-  const navigate = useNavigate();
+export const useNavigate = () => {
+  const navigate = useRouterNavigate();
 
   return <T extends ApplicationRouter.RoutePath>(
     to: ApplicationRouter.Route<T> | number,

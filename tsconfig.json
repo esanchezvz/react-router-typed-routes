@@ -1,5 +1,5 @@
 {
-  "include": ["src/**/*", ".react-router/types/**/*", "declarations/**/*"],
+  "include": ["src/**/*", ".react-router/types/**/*", "declarations/**/*", "playground.tsx"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": ["node", "vite/client"],

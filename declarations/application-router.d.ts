@@ -23,8 +23,11 @@ namespace ApplicationRouter {
   // Match route segments recursively
   type MatchRouteSegments<
     Pattern extends string[],
-    Candidate extends string[]
-  > = Pattern["length"] extends Candidate["length"]
+    Candidate extends string[],
+    Depth extends any[] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] // Limit default recursion to 10 levels - 11 items since we remove one from tuple in first iteration
+  > = Depth["length"] extends 0
+    ? false // Recursion limit reached
+    : Pattern["length"] extends Candidate["length"]
     ? Pattern extends [infer PHead, ...infer PTail]
       ? Candidate extends [infer CHead, ...infer CTail]
         ? PHead extends string
@@ -34,12 +37,14 @@ namespace ApplicationRouter {
                 ? false
                 : MatchRouteSegments<
                     PTail extends string[] ? PTail : [],
-                    CTail extends string[] ? CTail : []
+                    CTail extends string[] ? CTail : [],
+                    Depth extends [any, ...infer Rest] ? Rest : []
                   >
               : PHead extends CHead
               ? MatchRouteSegments<
                   PTail extends string[] ? PTail : [],
-                  CTail extends string[] ? CTail : []
+                  CTail extends string[] ? CTail : [],
+                  Depth extends [any, ...infer Rest] ? Rest : []
                 >
               : false
             : false
