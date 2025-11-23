@@ -49,10 +49,10 @@ const InvalidComponent = () => {
 // ⚠️ Limitation: Greedy Matching with AppRoutePath
 const invalid = "/users/43";
 const valid = "/users/43/edit";
-// @ts-expect-error
-route(invalid);
 
 route(valid);
+// @ts-expect-error
+route(invalid);
 // @ts-expect-error
 route(<string>valid); // string type is to broad to do route validation - template literal types are required
 
