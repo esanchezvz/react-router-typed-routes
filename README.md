@@ -26,7 +26,13 @@ This type transforms route keys into template literal types.
 - **Output**: `"/posts/${string}"`
 
 **Purpose**: It provides excellent **autocomplete** in your IDE.
-**Limitation**: TypeScript's template literal types are "greedy". `"/posts/${string}"` matches `"/posts/my-slug"`, but it _also_ matches `"/posts/my-slug/extra/segments"`. This is why `AppRoutePath` alone isn't strictly type-safe.
+**Limitation**: TypeScript's template literal types are **greedy**.
+
+- `ReplaceParams` converts `"/posts/:slug"` to `"/posts/${string}"`.
+- The type `${string}` matches **anything**, including slashes (`/`).
+- Therefore, `"/posts/${string}"` matches `"/posts/my-slug"`, but it _also_ matches `"/posts/my-slug/extra/segments"`.
+
+This is why `AppRoutePath` alone provides autocomplete but **not** strict validation. We need `AppRoute<T>` to enforce the structure segment-by-segment.
 
 ### `AppRoute<T>` (The "Strict" Validator)
 
@@ -78,47 +84,45 @@ type MatchRouteSegments<
   Pattern extends string[],
   Candidate extends string[],
   Depth extends any[] = Utils.DefaultRecursionLimit
-> = Pattern extends []
-  ? Candidate extends []
-    ? true
-    : false
-  : Depth["length"] extends 0
+> = Depth["length"] extends 0
   ? false // Recursion limit reached
-  : Pattern["length"] extends Candidate["length"]
-  ? Pattern extends [infer PHead, ...infer PTail]
-    ? Candidate extends [infer CHead, ...infer CTail]
-      ? PHead extends string
-        ? CHead extends string
-          ? IsParam<PHead> extends true
-            ? CHead extends ""
-              ? false
-              : MatchRouteSegments<
-                  PTail extends string[] ? PTail : [],
-                  CTail extends string[] ? CTail : [],
-                  Depth extends [any, ...infer Rest] ? Rest : []
-                >
-            : PHead extends CHead
-            ? MatchRouteSegments<
-                PTail extends string[] ? PTail : [],
-                CTail extends string[] ? CTail : [],
-                Depth extends [any, ...infer Rest] ? Rest : []
-              >
-            : false
-          : false
+  : Utils.ConsumeMatchingSegments<Pattern, Candidate> extends {
+      RemainingPattern: infer RemPattern extends string[];
+      RemainingCandidate: infer RemCandidate extends string[];
+    }
+  ? RemPattern extends []
+    ? RemCandidate extends []
+      ? true
+      : false
+    : RemPattern extends [
+        infer PHead extends string,
+        ...infer PTail extends string[]
+      ]
+    ? IsParam<PHead> extends true
+      ? RemCandidate extends [infer CHead, ...infer CTail extends string[]]
+        ? CHead extends ""
+          ? false
+          : MatchRouteSegments<
+              PTail,
+              CTail,
+              Depth extends [any, ...infer Rest] ? Rest : []
+            >
         : false
-      : never
-    : never
+      : false
+    : false
   : false;
 ```
 
 **Logic**:
 
-1.  **Recursion Limit**: Checks if `Depth` has reached 0. If so, returns `false` to prevent infinite recursion or "excessively deep" errors.
-2.  **Length Check**: Ensures both arrays have the same length.
-3.  **Recursive Head Matching**:
-    - **If Pattern Head is a Param** (`:id`): Checks if Candidate Head is a non-empty string.
-    - **If Pattern Head is Static** (`posts`): Checks if Candidate Head matches exactly.
-4.  **Recursion**: Recurses on the tails, decrementing the `Depth` counter.
+1.  **Recursion Limit**: Checks if `Depth` has reached 0.
+2.  **Static Matching (`Utils.ConsumeMatchingSegments`)**: Delegates to `Utils.ConsumeMatchingSegments` to consume all matching **static** segments (e.g., matching `users` against `users`).
+3.  **Result Check**:
+    - If both `RemainingPattern` and `RemainingCandidate` are empty, it's a full match (`true`).
+    - If `RemainingPattern` is not empty, it checks if the next segment is a **parameter** (`:id`).
+4.  **Parameter Matching**:
+    - If it is a parameter, it consumes one segment from the candidate (as long as it's not empty) and recurses.
+    - If it's not a parameter (and static matching failed), it returns `false`.
 
 ### `ValidateRoute<T>`
 

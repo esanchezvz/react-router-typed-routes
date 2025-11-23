@@ -3,6 +3,37 @@ declare global {
     type DefaultRecursionLimit = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
     /**
+     * Utility type that matches static segments of a pattern against a candidate.
+     * It consumes matching static segments and returns the remaining parts of both
+     * the pattern and the candidate.
+     *
+     * @example
+     * ```typescript
+     * // Exact match
+     * type T1 = ConsumeMatchingSegments<["users", "settings"], ["users", "settings"]>
+     * // -> { RemainingPattern: [], RemainingCandidate: [] }
+     *
+     * // Partial match
+     * type T2 = ConsumeMatchingSegments<["users", ":id"], ["users", "123"]>
+     * // -> { RemainingPattern: [":id"], RemainingCandidate: ["123"] }
+     *
+     * // Mismatch
+     * type T3 = ConsumeMatchingSegments<["users", "settings"], ["users", "profile"]>
+     * // -> { RemainingPattern: ["settings"], RemainingCandidate: ["profile"] }
+     * ```
+     */
+    type ConsumeMatchingSegments<
+      Pattern extends string[],
+      Candidate extends string[]
+    > = Pattern extends [infer PHead, ...infer PTail extends string[]]
+      ? Candidate extends [infer CHead, ...infer CTail extends string[]]
+        ? PHead extends CHead
+          ? ConsumeMatchingSegments<PTail, CTail>
+          : { RemainingPattern: Pattern; RemainingCandidate: Candidate }
+        : { RemainingPattern: Pattern; RemainingCandidate: Candidate }
+      : { RemainingPattern: Pattern; RemainingCandidate: Candidate };
+
+    /**
      * Utiliy type to test if a string mathes a specified pattern.
      *
      * @example
